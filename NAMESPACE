@@ -1,0 +1,8 @@
+useDynLib(endogMNP)
+
+export(endogMNP, summary.endogMNP)
+
+S3method(coef, endogMNP)
+S3method(summary, endogMNP)
+S3method(print, endogMNP)
+S3method(print, summary.endogMNP)
