@@ -19,7 +19,7 @@
 #include "subroutines.h"
 #include "rand.h"
 
-void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int *piNGen, 
+void cMNPgibbsSel(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int *piNGen, 
 	       double *b0,    /* prior mean for beta */
 	       double *pdA0, int *piNu0, int *nSelCov, int *nOutCov, double *pdS, double *pdX, 
 	       int *y,        /* response variable: -1 for missing */
@@ -88,7 +88,7 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
   /** get random seed **/
   GetRNGstate();
   /** defining vectors and matricies **/
-  Y = intMatrix(n_samp, (n_dim1+2)); /* maybe change this */
+  Y = intMatrix(n_samp, (n_dim1+2)); 
   W = doubleMatrix(n_samp, n_dim);
   X = doubleMatrix(n_samp*n_dim+n_cov, n_cov+1);
   Xbeta = doubleMatrix(n_samp, n_dim);
@@ -113,14 +113,17 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
   mtemp2 = doubleMatrix(n_dim, n_dim);
   PerSig = doubleMatrix3D(n_dim, n_dim, n_dim);
 	alpha2=doubleArray(n_dim); 
-	bkVec = intArray(n_dim1+3); /* Used to sample W_i-- tells what elements of W_i mean */ 
+/*	bkVec = intArray(n_dim1+3); */
+ /* Used to sample W_i-- tells what elements of W_i mean */ 
+	bkVec = intArray(n_dim1+2);
 	alphaBkVec = intArray(n_dim+1); /* for going from beta-tild to beta */
 
 
   /** Packing Y, X, A0, S, beta, Sigma  **/
 	/** Take vector y, transform to matrix Y */
 	itemp = 0;
-	for (j=0; j<(n_dim1 + 2); j++)
+/*	for (j=0; j<(n_dim1 + 2); j++)*/
+	for(j=0; j<(n_dim1 +1); j++)
 		for (i=0; i < n_samp; i++) Y[i][j] = y[itemp++]; 
 	
 	/*PintMatrix(Y, 5,4);*/
@@ -248,7 +251,8 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
 		  for(j=1; j<n_dim1; j++){
 		  alpha2[j]=alpha2[0];}
 		  
-		  for(i=1; i<(n_dim1 +2); i++){
+/*		  for(i=1; i<(n_dim1 +2); i++){*/
+		  for(i=1; i<(n_dim1+1); i++){
 			  trHold = 0;
 			  for(j=bkVec[i]; j<bkVec[i+1]; j++){
 				  trHold += SSigInvDiag[j];
@@ -308,7 +312,8 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
 		  /* new version */
 	  if(main_loop == 1){  /* do this twice for the first loop-- get correct orderings for first loop*/	  
 	  for(i=0; i<n_samp; i++){
-		  for(l=0; l < (n_dim1 + 2); l++){
+/*		  for(l=0; l < (n_dim1 + 2); l++){*/
+		  for(l=0; l< (n_dim1 + 1); l++){
 			  for(j = bkVec[l]; j<bkVec[l+1]; j++){
 				  maxw=0.0; 
 				  for(k=bkVec[l];k<bkVec[l+1];k++) {	  		  		  
@@ -343,7 +348,8 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
 			  }}}}
 	  
 	  for(i=0; i<n_samp; i++){
-		  for(l=0; l < (n_dim1 + 2); l++){
+/*		  for(l=0; l < (n_dim1 + 2); l++){*/
+		  for(l=0; l < (n_dim1 +1); l++){
 			  for(j = bkVec[l]; j<bkVec[l+1]; j++){
 				  maxw=0.0; 
 				  for(k=bkVec[l];k<bkVec[l+1];k++) {	  		  		  
@@ -542,7 +548,9 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
 			alpha2[j]=alpha2[0];
 		}
 		
-		for(k=1; k<n_dim1+2; k++){
+		/*for(k=1; k<n_dim1+2; k++){*/
+		for(k=1; k<n_dim1 +1; k++){
+		
 		for(j=bkVec[k]; j<bkVec[k+1]; j++){
 		alpha2[j]=alpha2[bkVec[k]];
 		}
@@ -637,5 +645,6 @@ void cMNPgibbs(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, int
 	
 
 } /* main */
+
 
 

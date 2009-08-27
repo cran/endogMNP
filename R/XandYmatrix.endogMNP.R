@@ -1,4 +1,5 @@
-XandYmatrix.endogMNP <- function(selX, selY, outX, outY, base1=NULL, base2=NULL, extra=FALSE, verbose=verbose){
+XandYmatrix.endogMNP <- function(selX, selY, outX, outY, base1=NULL, 
+base2=NULL, extra=FALSE, verbose=verbose){
 	selXnames <- colnames(selX)
 	outXnames <- colnames(outX)
 	rownames(selX) <- NULL
@@ -39,12 +40,36 @@ XandYmatrix.endogMNP <- function(selX, selY, outX, outY, base1=NULL, base2=NULL,
 	p2 <- length(lev2)
 	Y1 <- as.matrix(unclass(Y1)-1, nc=1) 
 	Y2 <- as.matrix(unclass(Y2)-1)
-	Y <- matrix(cbind(Y1,NA,NA,NA), nc=4)
+
+ naMat <- matrix(NA, nc=p1, nr=length(Y1))
+	Y <- matrix(cbind(Y1, naMat), nc=p1+1)
+whichNotObs <- NULL	
+notObsCat <- FALSE
+
 	for(i in 1:length(Y1)){
 		if(!is.na(Y1[i])){
-		   Y[i,(Y1[i]+2)] <- Y2[i]}}	
+		   Y[i,(Y1[i]+2)] <- Y2[i]}}
+	
+	
+ if(sum(apply(is.na(Y), 2, prod))>0){
+	if(sum(apply(is.na(Y), 2, prod))>1){
+	stop(paste("Error: Only one selection category can have no observed outcomes\n"))}
+	else {Y <- Y[,colSums(!is.na(Y)>0)>0]
+		notObsCat <- TRUE
+		whichNotObs <- which.max(colSums(is.na(Y))) -1
+	}}
+		
+			
+	
 	Y <- matrix(Y, nc=1, byrow=TRUE)	
-xMatrix <- matrix(0, nr=((p1-1+p1*(p2-1))*length(Y1)), nc=((length(selX[1,]))*(p1-1)+(length(outX[1,]))*p1*(p2-1)))
+	if(notObsCat){
+		xMatrix <- matrix(0, nr=((p1-1+(p1-1)*(p2-1))*length(Y1)), nc=((length(selX[1,]))*(p1-1)+
+																   (length(outX[1,]))*(p1-1)*(p2-1)))
+	}
+	else{
+xMatrix <- matrix(0, nr=((p1-1+p1*(p2-1))*length(Y1)), nc=((length(selX[1,]))*(p1-1)+
+														   (length(outX[1,]))*p1*(p2-1)))
+	}
 
 for(i in 1:length(Y1)){
 
@@ -53,7 +78,10 @@ for(i in 1:length(Y1)){
 	
 
 	selPart <- kronecker(diag(1,(p1-1)), selVec)
-	outPart <- kronecker(diag(1, p1*(p2-1)), outVec)
+	if(notObsCat) outPart <- kronecker(diag(1,(p1-1)*(p2-1)), outVec)
+	
+	else outPart <- kronecker(diag(1, p1*(p2-1)), outVec)
+	
 	zeroPadUpRight <- matrix(0, nr=dim(selPart)[1], nc=dim(outPart)[2])
 	upperRows <- cbind(selPart,zeroPadUpRight)
 	zeroPadLowLeft <- matrix(0, nr=dim(outPart)[1], nc=dim(selPart)[2])
@@ -65,7 +93,9 @@ selCovNum = length(selVec)
 outCovNum = length(outVec)	
 xMatrix <- matrix(xMatrix, nc=1, byrow=TRUE)		
 if(extra){
-	return(list(Y=Y, X=xMatrix, lev1=lev1, p1=p1, base1=base1, lev2=lev2, p2=p2, base2=base2, selCovNum=selCovNum, outCovNum=outCovNum, selXnames=selXnames, outXnames=outXnames))}
+	return(list(Y=Y, X=xMatrix, lev1=lev1, p1=p1, base1=base1, lev2=lev2, p2=p2, base2=base2, 
+				selCovNum=selCovNum, outCovNum=outCovNum, selXnames=selXnames, outXnames=outXnames,
+		   notObsCat=notObsCat, whichNotObs=whichNotObs))}
 	else{
 		return(list(Y=Y, X=xMatrix))}
 	}			

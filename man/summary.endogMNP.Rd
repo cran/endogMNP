@@ -46,8 +46,8 @@
 \seealso{\code{endogMNP}}
 
 \author{
-  Lane Burgette, Department of Statistics, University of Wisconsin,
-  \email{burgette@stat.wisc.edu}
+  Lane Burgette, Department of Statistical Science, Duke University,
+  \email{lb131@stat.duke.edu}
 }
 
 \keyword{methods}

@@ -7,7 +7,7 @@
 
 \description{
   \code{endogMNP} is used to fit a Bayesian multinomial probit
-  model with endogenous selection 
+  model with endogenous selection or switching
 	via Markov chain Monte Carlo.  The computation
   uses the efficient partial marginal data augmentation algorithm that is
   developed by Burgette and Nordheim (2009), which is an extension of the
@@ -105,11 +105,16 @@ endogMNP(selForm, outForm, dataSet = parent.frame(),
 
 \details{
   To fit the multinomial probit model when only the most
-  preferred choice is observed, use the syntax for the formula, 		\code{outForm = y ~ x1 + x2}, where \code{y} is a factor variable 	indicating the most
+  preferred choice is observed, use the syntax for the formula, 		\code{outForm = y1 ~ x1 + x2}, where \code{y} is a factor variable 	indicating the most
   preferred choice and \code{x1} and \code{x2} are individual-specific
   covariates. The selection process is modeled by 
-	\code{selForm = y2 ~ x3 + x4} where \code{y2} contains 
-	the selection category.
+	\code{selForm = y2 ~ x2 + x3} where \code{y2} contains 
+	the selection category.  The y1 and y2 variables may contain 
+	missing values (coded as \code{NA}), however the x variables must 
+	be fully observed.  Further, all but one of the selection categories
+	must have at least some observed outcomes.  (I.e., for a selection
+	model we should observe the outcome for all selection groups except 
+	one.) 
 }
   
 
@@ -152,8 +157,8 @@ endogMNP(selForm, outForm, dataSet = parent.frame(),
 
 
 \references{
-Burgette, Lane F. and Erik V. Nordheim (2009). \dQuote{A Full Gibbs Sampler	for a Multinomial Probit Model with Endogeneity.}  Available from
-	the first author's homepage.
+Burgette, Lane F. and Erik V. Nordheim (2009). \dQuote{A Full Gibbs Sampler	for a Multinomial Probit Model with Endogeneity.}  Available on  
+	request from the first author.
 
 Imai, Kosuke and David A. van Dyk (2005). \dQuote{A Bayesian Analysis of 
 	the Multinomial Probit Model Using Data Augmentation.} Journal
@@ -161,9 +166,8 @@ Imai, Kosuke and David A. van Dyk (2005). \dQuote{A Bayesian Analysis of
 }
 
 \author{
-Lane F. Burgette, Department of Statistics, University of Wisconsin-Madison
-	\email{burgette@stat.wisc.edu}, 
-	\url{http://www.stat.wisc.edu/~burgette}
+Lane F. Burgette, Department Statistical Science, Duke University, 
+	\email{lb131@stat.duke.edu}.
 }
 
 

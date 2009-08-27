@@ -42,7 +42,12 @@ minConst = TRUE)
     p2 <- tmp$p2 - 1
     selCovNum <- tmp$selCovNum
     outCovNum <- tmp$outCovNum
-    n.dim <- p1 + (p1 + 1) * p2
+	notObsCat <- tmp$notObsCat
+	whichNotObs <- tmp$whichNotObs
+	if(notObsCat){
+		n.dim <- p1 + p1*p2}
+	else{
+	n.dim <- p1 + (p1 + 1) * p2}
     if (verbose) 
 	cat("\nThe base selection category is `", base1, "'.\n", 
 		sep = "")
@@ -59,7 +64,7 @@ minConst = TRUE)
     if (p2 < 1) 
 	stop("The number of outcome alternatives should be at least 2.")
     if (verbose) 
-	cat("The total number of outcome classes is ", p2 + 1, 
+	cat("The number of outcome classes is ", p2 + 1, 
 		".\n\n", sep = "")
     X <- tmp$X
     selName <- tmp$selXnames
@@ -71,16 +76,30 @@ minConst = TRUE)
 											" : ", lev1[i], sep = ""))
         }
     }
+	if(notObsCat){
     for (l in 1:(p1 + 1)) {
+		if(l != whichNotObs){
         for (k in 1:length(outName)) {
             for (i in 2:(p2 + 1)) {
                 coefnames <- c(coefnames, paste("Out-", outName[k], 
 												" : ", lev2[i], "|", lev1[l], sep = ""))
-            }
-        }
-    }
+            }}}}
+	}
+	else{
+    for (l in 1:(p1 + 1)) {
+		for (k in 1:length(outName)) {
+				for (i in 2:(p2 + 1)) {
+					coefnames <- c(coefnames, paste("Out-", outName[k], 
+													" : ", lev2[i], "|", lev1[l], sep = ""))
+				}
+				}
+			}
+				}
 #number of covariates: 	
-    n.cov = p1 * selCovNum + (p1 + 1) * p2 * outCovNum
+	if(notObsCat)
+		n.cov <- p1 * selCovNum + (p1) * p2 * outCovNum
+	else
+	n.cov <- p1 * selCovNum + (p1 + 1) * p2 * outCovNum
 ## Cant handle NAs yet ## 	
     na.ind = 0
 #number of observations 	
@@ -145,13 +164,20 @@ minConst = TRUE)
         if (ncol(p.scale) != n.dim || nrow(p.scale) != n.dim) 
 		stop("`p.scale' must be ", n.dim, " x ", n.dim, sep = "")
 ## form testerMat to see if p.scale is appropriately block-diagonal ## 		
+
+		
         testerMat <- matrix(1, n.dim, n.dim)
         testerMat[1:p1, 1:p1] <- 0
+		if(notObsCat){
+		testerMat[(p1 + 1):n.dim, (p1 + 1):n.dim] <- 
+		testerMat[(p1 + 1):n.dim, (p1 + 1):n.dim] - kronecker(diag(rep(1, (p1))), matrix(1, p2, p2))}
+		else {
         testerMat[(p1 + 1):n.dim, (p1 + 1):n.dim] <- 
-		testerMat[(p1 + 1):n.dim, (p1 + 1):n.dim] - kronecker(diag(rep(1, (p1 + 1))), matrix(1, p2, p2))
+		testerMat[(p1 + 1):n.dim, (p1 + 1):n.dim] - kronecker(diag(rep(1, (p1 + 1))), matrix(1, p2, p2))}
         if (sum(abs(testerMat * p.scale)) != 0) {
             stop("`p.scale' must be block diagonal.  See manual.")
         }
+ 
         if (sum(sign(eigen(p.scale)$values) < 1) > 0) 
 		stop("`p.scale' must be positive definite.")
         else if (sum(abs(p.scale * testerMat)) != 0) {
@@ -164,12 +190,23 @@ minConst = TRUE)
     for (i in 2:length(lev1)) {
         lev <- c(lev, paste("Sel-", lev1[i], sep = ""))
     }
+	if(notObsCat){	
     for (i in 1:length(lev1)) {
         for (j in 2:length(lev2)) {
+			if(i != whichNotObs){
             lev <- c(lev, paste("Out-", lev2[j], "|", lev1[i], 
 								sep = ""))
+			}
         }
-    }
+    }}
+	else{
+		for (i in 1:length(lev1)) {
+			for (j in 2:length(lev2)) {
+				lev <- c(lev, paste("Out-", lev2[j], "|", lev1[i], 
+									sep = ""))
+			}
+		}
+	}
     for (j in 1:n.dim) {
         for (k in 1:n.dim) {
             if (j <= k) {
@@ -208,6 +245,20 @@ minConst = TRUE)
 	cat("Starting Gibbs sampler...\n")
 ## code NAs as -1 ##	
     Y[is.na(Y)] <- -1
+	if(notObsCat){
+    param <- .C("cMNPgibbsSel", as.integer(n.dim), as.integer(n.cov), 
+				as.integer(p1), as.integer(p2), as.integer(n.obs), as.integer(n.draws), 
+				as.double(p.mean), as.double(p.prec), as.integer(p.df), 
+				as.integer(selCovNum), as.integer(outCovNum), as.double(p.scale),
+				as.double(X), as.integer(Y), as.double(coef.start), 
+				as.double(cov.start), as.integer(p.imp), as.integer(invcdf), 
+				as.integer(burnin), as.integer(keep), as.integer(verbose), 
+				as.integer(latent), as.integer(minConst), 
+				pdStore = double(n.par * floor((n.draws - burnin)/keep)), 
+				PACKAGE = "endogMNP")$pdStore
+	}
+	else {
+	
     param <- .C("cMNPgibbs", as.integer(n.dim), as.integer(n.cov), 
 				as.integer(p1), as.integer(p2), as.integer(n.obs), as.integer(n.draws), 
 				as.double(p.mean), as.double(p.prec), as.integer(p.df), 
@@ -218,6 +269,7 @@ minConst = TRUE)
 				as.integer(latent), as.integer(minConst), 
 				pdStore = double(n.par * floor((n.draws - burnin)/keep)), 
 				PACKAGE = "endogMNP")$pdStore
+	}
     param <- matrix(param, ncol = n.par, nrow = floor((n.draws - 
 													   burnin)/keep), byrow = TRUE)
     if (latent) {
