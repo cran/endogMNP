@@ -30,6 +30,7 @@ void cMNPgibbsSel(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, 
 	       int *verbose,  /* 1 if extra print is needed */ 
 	       int *latent,   /* 1 if W is stored */
 			   int *piCase1, /* 1 if cov matrix is minimally constrained*/
+		   int *piTrace,
 	       double *pdStore){
 
 	
@@ -543,18 +544,52 @@ void cMNPgibbsSel(int *piNDim, int *piNCov, int *piP1, int *piP2, int *piNSamp, 
 	  for(j=0;j<n_dim; j++)
 		  alpha2[j]=Sigma[j][j];
 	  
-	if(case1==1){
+// Doesn't allow trace restriction: 	  
+/*	if(case1==1){
 		for(j=1; j<n_dim1; j++){
 			alpha2[j]=alpha2[0];
 		}
 		
-		/*for(k=1; k<n_dim1+2; k++){*/
+		//for(k=1; k<n_dim1+2; k++){
 		for(k=1; k<n_dim1 +1; k++){
 		
 		for(j=bkVec[k]; j<bkVec[k+1]; j++){
 		alpha2[j]=alpha2[bkVec[k]];
 		}
 		}}
+	*/
+	  
+// Allows trace restriction: 	  
+	  if(case1==1){
+		  if(*piTrace == 0){
+			  for(j=1; j<n_dim1; j++){
+				  alpha2[j]=alpha2[0];
+			  }
+			  
+			  for(k=1; k<n_dim1+1; k++){
+				  for(j=bkVec[k]; j<bkVec[k+1]; j++){
+					  alpha2[j]=alpha2[bkVec[k]];
+				  }
+			  }
+		  }
+		  if(*piTrace == 1){
+			  trHold = 0;
+			  for(j=0; j<n_dim1; j++)
+				  trHold += Sigma[j][j];
+			  for(j=0; j<n_dim1; j++)
+				  alpha2[j]=trHold / n_dim1;
+			  
+			  for(k=1; k<n_dim1+1; k++){
+				  trHold = 0;
+				  for(j=bkVec[k]; j<bkVec[k+1]; j++)
+					  trHold += Sigma[j][j];
+				  for(j=bkVec[k]; j<bkVec[k+1]; j++)
+					  alpha2[j] = trHold / n_dim2;
+			  }
+			  
+		  }
+	  }
+	  
 	  
 		
 	  for(j=0;j<n_dim;j++){

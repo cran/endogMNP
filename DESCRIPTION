@@ -1,6 +1,6 @@
 Package: endogMNP
-Version: 0.1-2
-Date: 2009-08-27
+Version: 0.2-1
+Date: 2010-03-30
 Title: R Package for Fitting Multinomial Probit Models with Endogenous
         Selection
 Author: Lane F. Burgette <lb131@stat.duke.edu>
@@ -17,6 +17,6 @@ License: GPL (>= 2)
 URL: http://www.r-project.org,
         http://fds.duke.edu/db/aas/stat/faculty/lb131
 LazyLoad: yes
-Packaged: 2009-08-27 20:13:38 UTC; lburgette
+Packaged: 2010-03-31 04:41:04 UTC; lburgette
 Repository: CRAN
-Date/Publication: 2009-08-28 20:18:37
+Date/Publication: 2010-04-02 17:08:05

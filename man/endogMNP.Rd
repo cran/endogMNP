@@ -20,7 +20,7 @@ endogMNP(selForm, outForm, dataSet = parent.frame(),
                 invcdf = FALSE, n.draws = 5000, p.var = "Inf",
                 p.df = n.dim+1, p.scale = 1, coef.start = 0,
                 cov.start = 1, burnin = 0, thin = 0, verbose = FALSE,
-		minConst=TRUE)}
+		minConst=TRUE, trace=TRUE)}
 
 
 \arguments{
@@ -101,6 +101,9 @@ endogMNP(selForm, outForm, dataSet = parent.frame(),
 	in order to make the model identifiable.  If \code{FALSE},
 	all of the diagonal elements of the covariance matrix are
 	constrained to be 1.  This can improve convergence in some cases.}
+\item{trace}{Logical. If \code{TRUE}, the trace restriction will be 
+	used to identify the model.  This argument is ignored if
+	\code{minConst=FALSE}.}
 }
 
 \details{

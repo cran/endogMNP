@@ -2,7 +2,7 @@ endogMNP <- function (selForm, outForm, dataSet = parent.frame(), selBase = NULL
 outBase = NULL, latent = FALSE, invcdf = FALSE, 
 n.draws = 5000, p.var = "Inf", p.df = n.dim + 1, p.scale = 1, 
 coef.start = 0, cov.start = 1, burnin = 0, thin = 0, verbose = FALSE, 
-minConst = TRUE) 
+minConst = TRUE, trace = TRUE) 
 {
     captureFormula <- function(formula, data = dataSet, latent = FALSE, 
 							   invcdf = FALSE, n.draws = 5000, p.var = "Inf", 
@@ -67,11 +67,12 @@ minConst = TRUE)
 	cat("The number of outcome classes is ", p2 + 1, 
 		".\n\n", sep = "")
     X <- tmp$X
+    
     selName <- tmp$selXnames
     outName <- tmp$outXnames
     coefnames <- NULL
-    for (k in 1:length(selName)) {
-        for (i in 2:(p1 + 1)) {
+    for (i in 2:(p1 + 1)) {
+    	for (k in 1:length(selName)) {
             coefnames <- c(coefnames, paste("Sel-", selName[k], 
 											" : ", lev1[i], sep = ""))
         }
@@ -79,18 +80,18 @@ minConst = TRUE)
 	if(notObsCat){
     for (l in 1:(p1 + 1)) {
 		if(l != whichNotObs){
-        for (k in 1:length(outName)) {
             for (i in 2:(p2 + 1)) {
+            	for (k in 1:length(outName)) {
                 coefnames <- c(coefnames, paste("Out-", outName[k], 
 												" : ", lev2[i], "|", lev1[l], sep = ""))
             }}}}
 	}
 	else{
     for (l in 1:(p1 + 1)) {
-		for (k in 1:length(outName)) {
-				for (i in 2:(p2 + 1)) {
+    	for (i in 2:(p2 + 1)) {
+			for (k in 1:length(outName)) {
 					coefnames <- c(coefnames, paste("Out-", outName[k], 
-													" : ", lev2[i], "|", lev1[l], sep = ""))
+												" : ", lev2[i], "|", lev1[l], sep = ""))
 				}
 				}
 			}
@@ -150,7 +151,7 @@ minConst = TRUE)
     if (!minConst) {
         if (p.scale != 1) {
             p.scale <- 1
-            warning("p.scale must equal 1 when minConst=FALSE")
+            warning("p.scale must be 1 when minConst=FALSE")
 		}
 		p.scale <- diag(rep(1,n.dim))
         }
@@ -180,10 +181,21 @@ minConst = TRUE)
  
         if (sum(sign(eigen(p.scale)$values) < 1) > 0) 
 		stop("`p.scale' must be positive definite.")
-        else if (sum(abs(p.scale * testerMat)) != 0) {
+        else if (trace == FALSE){
+        	if (sum(abs(p.scale * testerMat)) != 0) {
             p.scale[leadDimHold, leadDimHold] <- 1
             warning("leading elements in the block diagonal p.scale will be set to 1.")
-        }
+        } }
+        else {
+        	diagHld <- diag(p.scale)
+        	if(sum(diagHld[1:p1]) != p1)
+        	stop("The sub-matrices of `p.scale' must have trace equal to their dimension.")
+        	diagHld <- diagHld[-(1:p1)]
+        	while(length(diagHld) > 0){
+        		if(sum(diagHld) != length(diagHld))
+        		stop("The sub-matrices of `p.scale' must have trace equal to their dimension.")
+        		diagHld <- diagHld[-(1:p2)]}
+        	}
     }
     Signames <- NULL
     lev <- NULL
@@ -253,7 +265,7 @@ minConst = TRUE)
 				as.double(X), as.integer(Y), as.double(coef.start), 
 				as.double(cov.start), as.integer(p.imp), as.integer(invcdf), 
 				as.integer(burnin), as.integer(keep), as.integer(verbose), 
-				as.integer(latent), as.integer(minConst), 
+				as.integer(latent), as.integer(minConst), as.integer(trace),
 				pdStore = double(n.par * floor((n.draws - burnin)/keep)), 
 				PACKAGE = "endogMNP")$pdStore
 	}
@@ -266,7 +278,7 @@ minConst = TRUE)
 				as.double(X), as.integer(Y), as.double(coef.start), 
 				as.double(cov.start), as.integer(p.imp), as.integer(invcdf), 
 				as.integer(burnin), as.integer(keep), as.integer(verbose), 
-				as.integer(latent), as.integer(minConst), 
+				as.integer(latent), as.integer(minConst), as.integer(trace),
 				pdStore = double(n.par * floor((n.draws - burnin)/keep)), 
 				PACKAGE = "endogMNP")$pdStore
 	}
@@ -284,6 +296,8 @@ minConst = TRUE)
     allNms <- c(coefnames, Signames)
     colnames(param) <- c(coefnames, Signames)
     Y[Y == -1] <- NA
+    
+
 
         res <- list(call = call, param = param, x = X, y = Y, 
 					n.dim = n.dim, n.obs = n.obs, 

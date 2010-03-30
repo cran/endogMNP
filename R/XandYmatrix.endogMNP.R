@@ -5,6 +5,9 @@ base2=NULL, extra=FALSE, verbose=verbose){
 	rownames(selX) <- NULL
 	rownames(outX) <- NULL
 	selX <- data.matrix(selX)
+	
+
+	
 	outX <- data.matrix(outX)
 	Y1 <- as.factor(selY)
 	lev1 <- levels(Y1)
@@ -28,7 +31,7 @@ base2=NULL, extra=FALSE, verbose=verbose){
 		Y2 <- relevel(Y2, ref=base2)
 		lev2 <- levels(Y2)}
 		else{
-			stop(paste("Error: 'base' does not exist in the response variable."))	}
+			stop(paste("Error: `base' does not exist in the response variable."))	}
 	base2 <- lev2[1]
 	counts2 <- table(Y2)	
 	if(any(counts2==0)){
@@ -54,9 +57,10 @@ notObsCat <- FALSE
  if(sum(apply(is.na(Y), 2, prod))>0){
 	if(sum(apply(is.na(Y), 2, prod))>1){
 	stop(paste("Error: Only one selection category can have no observed outcomes\n"))}
-	else {Y <- Y[,colSums(!is.na(Y)>0)>0]
+	else {whichNotObs <- which.max(colSums(is.na(Y))) -1
+		Y <- Y[,colSums(!is.na(Y)>0)>0]
 		notObsCat <- TRUE
-		whichNotObs <- which.max(colSums(is.na(Y))) -1
+		
 	}}
 		
 			
@@ -89,6 +93,8 @@ for(i in 1:length(Y1)){
 	Xi <- rbind(upperRows, lowRows)
 	xMatrix[(1+(i-1)*dim(Xi)[1]):(i*dim(Xi)[1]),] <- Xi
 	}
+	
+#	print(head(xMatrix))	
 selCovNum = length(selVec)
 outCovNum = length(outVec)	
 xMatrix <- matrix(xMatrix, nc=1, byrow=TRUE)		
